@@ -1,0 +1,17 @@
+# 역할 간 정리본 내용물(형식 문서만 올림)
+exchange/*/
+!exchange/README.md
+
+# 각 역할의 자동 생성물
+*/data/
+*/results/
+*/state/
+*/logs/
+__pycache__/
+
+# 비밀
+.env
+*.session
+.streamlit/secrets.toml
+scenario_targets.json
+basket_watchlist.json
