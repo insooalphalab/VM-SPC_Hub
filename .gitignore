@@ -12,6 +12,7 @@ __pycache__/
 # 비밀
 .env
 *.session
-.streamlit/secrets.toml
+**/.streamlit/secrets.toml
 scenario_targets.json
 basket_watchlist.json
+logs/

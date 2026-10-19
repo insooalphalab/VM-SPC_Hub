@@ -6,19 +6,39 @@
 국내 시장 데이터(일봉 · 기술 지표 · 투자자 수급 · 프로그램 · 신용 · 공매도 · DART 공시)와 그 위의 **기계적 상태**(코스피 장세, 대량 복귀일, 규칙 충족 종목, 보유 종목 상태)를 `..\exchange\2_kr_market\{거래일}\`에 낸다.
 규칙 충족 여부는 계산하지만, 무엇을 살지 · 팔지의 판단 문구는 1 코어가 쓴다.
 
-## 입력 (전환 기간 — 읽기만)
-- `..\..\VM-SPC_Core\data\` — `_long_history`(790종목 일봉 2016 – ) · `_investor_detail` · `_program` · `_credit` · `_short` · `_dart`
-- `..\..\VM-SPC_Core\results\scenario\` — `screen.json`(오늘의 후보) · `summary.json`(보유 · 관심 요약) · `market.json`(장세) · `mass_days.json`(대량 복귀일 기록)
-- 보유 · 관심: `..\..\VM-SPC_Core\scenario_targets.json` (비밀 — 커밋 금지)
-- VM-SPC_Core 매일 파이프라인(평일 16:30, 약 15분)이 이 데이터를 만든다. 전환 기간에는 그 결과를 읽는다.
+## 입력 · 원칙
+- Core가 이미 판정까지 끝낸 결과를 다시 계산하지 않고 읽어서 형식만 바꾼다. 읽는 파일(`..\..\VM-SPC_Core\`): `results\scenario\market.json` → `regime`, `screen.json` → `mass_recovery` · `candidates`, `mass_days.json` → `mass_recovery`(마지막 날짜), `summary.json` → `holdings`, `data\_market\investor_kospi.csv` → `flows`(참고).
+- 이 결과는 hub_pm(16:00)이 Core 스크립트(바스켓 일봉 · 프로그램 · 섹터 ETF · 후보 · 보유 페이지 · 시장 투자자별)를 실행해 만든 뒤 export가 읽는다. 원자료 위치는 `..\README.md` "데이터 지도".
+- 보유 · 관심: `..\..\VM-SPC_Core\scenario_targets.json` (비밀 — 커밋 금지).
+- KIS는 휴장일 달력 · VKOSPI · 테마 보조 · 개인 쏠림 ETF만 부른다(나머지 수집 이관은 사용자 결정 전). 검증용 데이터는 약 790종목, 2016년 이전으로 늘리지 않는다.
+- 수집을 더 넘겨받을 때 복사 원본: Core `vm_predict\` · `stock_track\collect_*.py` · `dart_events\` · `scenario\box_rules.py`(박스 · 청산 상수) · `screen.py` · `render_risk.py`(`market_state` · `holding_view` · `absorption`), 장중은 `..\..\KIS_auto\한투API_시간별데이터.py`.
+- 파일 구성 · 다른 곳이 읽는 경로는 `README.md`.
 
-## 출발 코드 (나중에 수집을 넘겨받을 때 복사)
-- 수집: `VM-SPC_Core\vm_predict\` · `stock_track\collect_*.py` · `dart_events\` · `core\`(KIS 클라이언트 · 설정)
-- 장세 · 규칙: `VM-SPC_Core\scenario\box_rules.py`(박스 · 청산 상수 — 검증과 화면이 같이 씀) · `screen.py` · `render_risk.py`의 `market_state` · `holding_view` · `absorption`
-- 장중: `..\..\KIS_auto\한투API_시간별데이터.py`(10:00 · 13:00 · 15:20 외인 · 기관 가집계, 체결강도)
+## 테마 흐름 (2026-10-10 사용자 결정)
+- `themes.py`: VM-SPC_Core 테마 묶음(바스켓) 39개를 22개 테마(`GROUPS`)로 합쳐, 바스켓 폴더 일봉으로 테마별 그날 평균 · 중앙 등락, +5% 이상 종목 수, 5일 등락, 지속(평균 등락 상위 5 연속 일수), 상위 3종목을 계산 → `export_exchange.py`가 `themes.json` + item `themes`로 낸다.
+- 키워드(`GROUPS` 세 번째 칸)는 5_news가 테마별 뉴스 언급을 셀 때 쓴다 — 바꾸면 뉴스 쪽도 같이 바뀐다. `gi`(GROUPS 순서)는 여러 테마에 든 종목을 뉴스에서 어느 테마로 셀지 정한다.
+- 예시: 데구르르 "테마 사이클(10월 1주차)" 자료(주간 · 전체 시장 상승률 상위 기준)의 하루치 축약판. 우리 것은 Core 790종목 중 테마 묶음 종목만 보므로 중소형 테마주 일부는 빠진다.
+- 방향 판단 없음(참고). 당일 봉은 hub_pm 16:00이 테마 묶음 일봉을 먼저 받아 둔다.
+- **테마 돈의 흐름(2026-10-15 사용자 승인 — 테마 사이클 자료의 관점: 어디로 돈이 갔나 · 어느 덩치 · 며칠 머물렀나)**: `GROUPS`는 그대로 두고(1_core signal_log 검증 신호 · 5_news 키워드 · 3_us 연관 테마가 이름을 씀) 그 위에 따로 만든다.
+  - `theme_map.py` → `theme_map.json`(상위군 소속표, 분기 말 hub_month가 다시 만듦). 규칙: 시장 뺀 일별 수익 상관(120 · 250일 두 기간) — 그룹 지수끼리 두 기간 모두 0.75 이상이면 합침(반도체 + 소부장 · 원전 + 건설 · 화장품 + 필수소비재), 그룹 안 상관 중앙값 두 기간 모두 0.2 미만이면 뺌(인터넷), 종목은 가장 잘 맞는 상위군 하나(0.2 미만 = 기타), 바스켓 밖은 하루 거래대금 200억 이상 ∧ 상관 0.4 이상만 넓힘(16종목, 일봉은 Core `_scenario`에 이미 있음), 상위군 5종목 이상. 보이는 이름만 `RENAME`("IT" → "대형 반도체 · IT": 삼성전자 · SK하이닉스 등이 여기 모임, "반도체" → "반도체 중소형 · 소부장"). 2026-10-15 첫 판 17군 · 219종목.
+  - `theme_extra.py`(hub_pm 16:00 VKOSPI 다음, KIS): 넓힘 종목 일봉(바스켓 · `_scenario`에 없을 때만 `data\theme_extra\`) · 상장주식수 `data\theme_shares.csv`(30일마다, 시총 층용). `price_file()`이 바스켓 → `_scenario` → `theme_extra` 순으로 찾는다.
+  - `theme_flow.py` → `themes.json` `flow`: 그룹 등락(직전 20일 거래대금 가중 — 작은 종목 하나가 그룹을 끌어올리지 않게) · 동일가중 평균 · 5일 · 거래대금 몫과 평소(직전 20일) 대비 배수 · 오른 종목 수 · 확산(5등 ÷ 1등) · 지속(가중 등락 상위 5 연속) · 시총 층(대형 10조+ · 중형 1 – 10조 · 소형) 등락 · 최근 20일 히트맵. 시장 전체 층별 등락 · 거래대금 몫. 방향 판단 없음(9.277 – 9.305 테마 흐름 → 다음 방향 = 쓸 만하지 않음).
 
-## 첫 작업 (4단계)
-1. **수집은 옮기지 말고** VM-SPC_Core 결과(위 results\scenario\)를 읽어 `summary.json` · `candidates.json` · `holdings.json`으로 내는 내보내기부터(key: regime · mass_recovery · candidates · holdings · flows).
-2. 실행 시각은 VM-SPC_Core 파이프라인이 끝난 뒤(16:50 근처).
-3. 수집 이관(KIS 호출을 이 폴더로)은 7단계 비교가 끝난 뒤 사용자 결정으로. 그 전엔 KIS를 부르지 않는다.
-4. 검증용 데이터는 검증용 약 790종목만 모은다. 2016년 이전으로 이력을 늘리지 않는다.
+## 보유 · 관심 수급 표시 (2026-10-14 사용자 결정)
+- `flow_flags.py`: 보유 · 관심 종목마다 연기금 연속 순매수 일수, 기관합계 20일 중 순매수 일수 · 합, 공매도 거래대금 비중 20일 평균과 전 종목 순위 → `export_exchange.py`가 `holdings.json` 종목별 `flow` + item `flow_flags`로 낸다. 정의는 VM-SPC_Core 9.322 · 9.325 · 9.326 그대로, 값만 내고 문구는 1_core.
+- `holding_facts.py`(2026-10-15): 보유 · 관심 종목마다 오늘 · 20일 수익(코스피200 대비) · 1년 고점 대비 · 250일선 이격 · 120일선 20일 변화 · 1년 수익 · 20일 변동성과 1년 안 순위 · 거래량 ÷ 20일 평균 · 테마 · 최근 30일 DART 공시 · 지분 변동 보고 · 작년 같은 때 잠정실적 날 → `holdings.json` 종목별 `facts`, 보유 종목 같은 테마 2종목 이상 묶음(60일 상관 평균 · 오늘 평균) → `holdings.json` `groups`. 예측 아님, 값만 내고 문구는 1_core(보유 코멘트 ② 추세 · ③ 사실).
+- 매물대(2026-10-14, 9.329 정의): 직전 250거래일(당일 제외) 거래량 중 종가가 (C, 1.2C]였던 날의 비중 → `overhang` · `overhang_rank` · `overhang_flag`(> 0.9). 전 종목 `_long_history`는 매일 갱신되지 않아 **테마 묶음 바스켓 일봉(hub_pm 16:00 갱신) 안 순위**로 씀 — 오늘 봉 · 250일이 있는 종목만(2026-10-14 기준 236종목). 바스켓에 없는 관심 종목은 값 없음.
+- 자료(읽기만): Core `data\_investor_detail`(보유 · 관심은 hub_pm의 `render_risk.py`가 매일 갱신 — 후보 · 관찰 종목은 갱신되지 않아 대상에서 뺌) · `data\_short`(주기 갱신, 기준일을 같이 냄). 전 종목 공매도 파일 약 790개를 읽어 약 5초.
+
+## VKOSPI · 개인 쏠림 ETF (2026-10-15 사용자 결정)
+- `retail_etf.py`(2026-10-15, hub_pm theme_extra 다음): KODEX 레버리지 · 인버스 · 200선물인버스2X · 코스닥150 레버리지 · 선물인버스 · 200 일봉(KIS, 2010 – ) → `data\retail_etf\{code}.csv` + 상장좌수 매일 스냅샷 `shares.csv`(과거 이력 API 없음). 4_macro 유동성 모니터 국내 상태 줄이 읽음(9.344).
+- `vkospi.py`: KIS 국내업종 일자별지수(FHPUP02120000, 업종 코드 0503 = VKOSPI — KIS 지수 마스터 idxcode.mst에서 찾음)로 `..\exchange\2_kr_market\vkospi.csv`(2003 – , 누적). 평소엔 마지막 저장일 이후만, `--full`은 100거래일씩 과거로(약 1분). KRX 정보데이터시스템은 로그인 필요라 못 씀.
+- 실행: hub_pm.ps1 16:00(장 마감 뒤, Core 빠른 경로 다음). 실패해도 0으로 끝남 — 4_macro 유동성 · 신용 모니터는 파일이 없거나 5일 넘게 오래되면 코스피 실현 변동성으로 대신한다.
+
+## 국내 개장일 달력 (2026-10-12 사용자 결정)
+- `kr_calendar.py`: KIS 국내휴장일조회(`/uapi/domestic-stock/v1/quotations/chk-holiday`, CTCA0903R)를 불러 `..\exchange\2_kr_market\kr_calendar.json`(날짜 → 개장 여부)으로 캐시. 앞으로 14일이 있으면 부르지 않음.
+- 실행: hub_am.ps1이 07:20 뒤에(Global 07:00 KIS 호출과 10분 넘게 간격). 실패해도 0으로 끝남 — 1_core는 달력이 없으면 토 · 일 규칙만 쓴다.
+- 복사 파일: VM-SPC_Core `core\` kis_auth · kis_client · secrets_loader · v2_config → 이 폴더 `core\`(수정 없음). 비밀: 이 폴더 `.streamlit\secrets.toml`에 KIS_APP_KEY · KIS_APP_SECRET 두 줄(사용자가 넣음, 커밋 금지). 토큰 캐시는 이 폴더 `state\`.
+
+## 할 일
+- 없음. (참고: `.streamlit\secrets.toml`은 BOM 없는 UTF-8이어야 한다 — BOM이 있으면 TOMLDecodeError.)
