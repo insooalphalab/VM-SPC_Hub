@@ -35,4 +35,4 @@
 - 읽음: `..\exchange\{2_kr_market · 3_us_market · 4_macro · 5_news}\latest.json` → 그 날짜 폴더, 2_kr `kr_calendar.json`, Core `results\scenario\*.html`, Core 일봉(실전 기록 채우기).
 - 씀: `results\`(리포트 · 실전 기록 두 개), `..\exchange\1_core\{날짜}\`.
 - `results\report_*`는 지워도 다시 만들 수 있지만 `signal_log.json` · `track_retail_mom.json`은 쌓인 기록이라 지우지 않는다.
-- 9.355 종목 합성 피하기 실전 기록은 허브가 아니라 Core에 쌓인다(`..\..\VM-SPC_Core\results\track_stock_combo.json` · `_universe.csv`, Core `research\track_stock_combo.py`를 hub_month가 실행만). 2027-10 짝 비교용, 리포트에 안 넣음.
+- 9.355 종목 합성 피하기 실전 기록은 허브가 아니라 Core에 쌓인다(`..\..\VM-SPC_Core\results\track_stock_combo.json` · `_universe.csv`, Core `research\track_stock_combo.py`를 hub_month가 실행만). 2027-10 짝 비교용, 리포트에 안 넣음. 스크립트는 Core 저장소에 있지만(b70608d), 쓰는 패널 캐시(Core `results\stock_combo_parts.pkl` · `flow_scan2_parts\base.pkl`)는 커밋되지 않음 — Core를 새로 받으면 `validate_flow_scan2.py` · `validate_stock_combo.py` 등을 다시 돌려 만들어야 월말 기록이 돈다.
