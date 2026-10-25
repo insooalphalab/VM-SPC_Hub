@@ -18,6 +18,7 @@
   kr_calendar.py         국내 개장일 달력(KIS)
   vkospi.py              VKOSPI 일별(KIS)
   retail_etf.py          개인 쏠림 ETF 일봉 · 좌수(KIS)
+  futures_investor.py    코스피200 선물 투자자별 순매수(KIS, 그날 값을 매일 쌓음)
   core/                  Core 복사본: kis_auth · kis_client · secrets_loader · v2_config
   data/                  theme_extra/ · theme_shares.csv · retail_etf/ (git 제외)
   state/                 KIS 토큰 캐시(git 제외)
@@ -37,6 +38,8 @@
 | `holding_facts.py` | `holdings.json` `facts` · `groups` | export가 import |
 | `kr_calendar.py` | `..\exchange\2_kr_market\kr_calendar.json` | hub_am 07:20 뒤 |
 | `vkospi.py` | `..\exchange\2_kr_market\vkospi.csv`(2003 – 누적) | hub_pm |
+| `futures_investor.py` | 코스피200 선물 투자자별 순매수(그날 값) → `data\futures_investor.csv`(2026-10-21 – 누적) | hub_pm (15:50 뒤만) |
+| `futures_krx_import.py` | KRX에서 받은 선물 투자자별 CSV(EUC-KR)를 `data\futures_investor.csv`에 합침(2015 – ) | 손으로, 파일 받을 때 |
 | `retail_etf.py` | `data\retail_etf\{code}.csv` · `shares.csv` | hub_pm |
 
 ## 입력 · 출력

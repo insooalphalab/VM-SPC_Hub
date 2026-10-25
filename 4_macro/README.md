@@ -25,8 +25,9 @@
 | `export_exchange.py` | 기본 수집 → `data\macro_daily.csv` · `memory_daily.csv`, 확장 · 체크리스트 · 모니터 · 외국인 시선을 돌려 `summary_am.json · .md` · `checklist.json` · `liquidity_monitor.json` · `foreign_view.json` + `latest.json` (key: rates · fx · oil · credit · memory · quarter · checklist · liquidity · foreign_view) | hub_am 07:15 (약 2분) |
 | `월간_매크로섹터분석.py` | `collect_l1_data` · `collect_l2_data` · `collect_l3_dram` (엑셀 · L4는 안 씀) | export · collect_ext가 import |
 | `collect_ext.py` | `data\macro_ext.csv`(2000 – 누적, 평소엔 최근 400일) · `data\etf_shares.csv`(매일 한 줄) | export가 부름 (`--full`은 손으로) |
-| `checklist.py` | `CARDS` · `SPEC`으로 카드별 체크 · 부담 점수 → `data\checklist.json` | export가 부름 |
+| `checklist.py` | `CARDS` · `SPEC`으로 카드별 체크 · 부담 점수, `REF_CARDS`(AI 참고 카드, 점수 밖) · 직전 대비 · 괴리 · 같은 줄기 → `data\checklist.json`, 이력 `data\checklist_hist.json` | export가 부름 |
 | `liquidity_monitor.py` | 12개 지표 · 경보 · 등급별 신용 · `kr_state` · 텔레그램 문안 → `data\liquidity_monitor.json` | export가 부름 |
+| `bond_foreign.py` | 외국인 원화 채권 순매수(FreeSIS 장외, 일별 2010 – ) → `data\bond_foreign.csv` | export가 부름 (`--full`은 손으로) |
 | `foreign_view.py` | 달러 코스피 · 원화 분해 · 외국인 순매수 달러 · 국가 ETF · `story()` → `data\foreign_view.json` | export가 부름 |
 
 ## data\
@@ -34,8 +35,10 @@
 | 파일 | 내용 |
 |---|---|
 | `macro_daily.csv` | 기본 매크로 일별(2015-01 – , HY · BBB는 2023-10 – ) |
+| `bond_foreign.csv` | 외국인 채권 순매수 일별(억 원) |
 | `memory_daily.csv` | DRAM · NAND 현물 |
-| `macro_ext.csv` | 확장 시리즈(2000 – ) |
+| `macro_ext.csv` | 확장 시리즈(2000 – , FreeSIS 증시 주변 자금 `s_*`는 1998 – 일별) |
+| `checklist_hist.json` | 체크리스트 날마다 기록(직전 대비 · 바뀐 날 표시용, 2026-10-15 – , 최근 400개) — 지우면 비교가 처음부터 |
 | `etf_shares.csv` | 국가 · 지수 ETF 12개 주식 수 스냅샷(2026-10-15 – , 과거 이력 없음 — 지우면 복구 불가) |
 | `checklist.json` · `liquidity_monitor.json` · `foreign_view.json` | 그날 계산 결과(정리본 폴더에도 복사) |
 
@@ -44,4 +47,4 @@
 | 경로 | 읽는 곳 |
 |---|---|
 | `data\macro_daily.csv` · `data\macro_ext.csv` | VM-SPC_Core `research\validate_hub_*.py` · `validate_macro_*.py` · `validate_burden_dynamics.py` 등 |
-| `checklist.py`의 `CARDS` 5칸 형식 | Core `research\validate_macro_checklist.py` 등이 import — 형식을 바꾸지 않는다 |
+| `checklist.py`의 `CARDS` 5칸 형식(AI 카드는 `REF_CARDS`로 따로) | Core `research\validate_macro_checklist.py` 등이 import — 형식을 바꾸지 않는다 |

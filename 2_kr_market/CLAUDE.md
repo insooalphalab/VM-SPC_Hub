@@ -10,7 +10,7 @@
 - Core가 이미 판정까지 끝낸 결과를 다시 계산하지 않고 읽어서 형식만 바꾼다. 읽는 파일(`..\..\VM-SPC_Core\`): `results\scenario\market.json` → `regime`, `screen.json` → `mass_recovery` · `candidates`, `mass_days.json` → `mass_recovery`(마지막 날짜), `summary.json` → `holdings`, `data\_market\investor_kospi.csv` → `flows`(참고).
 - 이 결과는 hub_pm(16:00)이 Core 스크립트(바스켓 일봉 · 프로그램 · 섹터 ETF · 후보 · 보유 페이지 · 시장 투자자별)를 실행해 만든 뒤 export가 읽는다. 원자료 위치는 `..\README.md` "데이터 지도".
 - 보유 · 관심: `..\..\VM-SPC_Core\scenario_targets.json` (비밀 — 커밋 금지).
-- KIS는 휴장일 달력 · VKOSPI · 테마 보조 · 개인 쏠림 ETF만 부른다(나머지 수집 이관은 사용자 결정 전). 검증용 데이터는 약 790종목, 2016년 이전으로 늘리지 않는다.
+- KIS는 휴장일 달력 · VKOSPI · 테마 보조 · 개인 쏠림 ETF · 선물 투자자별만 부른다(나머지 수집 이관은 사용자 결정 전). 검증용 데이터는 약 790종목, 2016년 이전으로 늘리지 않는다.
 - 수집을 더 넘겨받을 때 복사 원본: Core `vm_predict\` · `stock_track\collect_*.py` · `dart_events\` · `scenario\box_rules.py`(박스 · 청산 상수) · `screen.py` · `render_risk.py`(`market_state` · `holding_view` · `absorption`), 장중은 `..\..\KIS_auto\한투API_시간별데이터.py`.
 - 파일 구성 · 다른 곳이 읽는 경로는 `README.md`.
 
@@ -40,5 +40,12 @@
 - 실행: hub_am.ps1이 07:20 뒤에(Global 07:00 KIS 호출과 10분 넘게 간격). 실패해도 0으로 끝남 — 1_core는 달력이 없으면 토 · 일 규칙만 쓴다.
 - 복사 파일: VM-SPC_Core `core\` kis_auth · kis_client · secrets_loader · v2_config → 이 폴더 `core\`(수정 없음). 비밀: 이 폴더 `.streamlit\secrets.toml`에 KIS_APP_KEY · KIS_APP_SECRET 두 줄(사용자가 넣음, 커밋 금지). 토큰 캐시는 이 폴더 `state\`.
 
+## 선물 투자자별 (2026-10-21 사용자 가설 — "선물 · 현물의 외인 · 기관 · 개인 흐름이 크로스하거나 같이 갈 때")
+- `futures_investor.py`: KIS 시장별 투자자매매동향(시세, FHPTJ04030000)에 시장 `K2I` · 업종 `F001`을 넣으면 코스피200 선물 투자자별 순매수(계약 수 · 대금)가 나온다. **그날 값만** 주고 과거 일별은 없음 → hub_pm(15:50 뒤 · 휴장일 아님)에서 하루 한 줄씩 `data\futures_investor.csv`에 쌓는다. 시장별 투자자(일별, FHPTJ04040000)는 선물 코드를 받지 않음(시험함).
+- 1단계 대리 검증 9.350(2026-10-21, 현물 투자자 × 프로그램 차익): 129칸 살아남음 0 — 엇갈려도 같이 가도 이후 코스피를 알려 주지 않음. 차익은 투자자 구분 없는 대리라 가설 직접 시험은 아님 → 선물 투자자별 과거분을 구하거나 쌓이면 같은 정의(Core `research\validate_spot_arbt.py`)로 재검증.
+
+- 과거분(2026-10-21 사용자가 KRX [15007] 투자자별 거래실적에서 2년씩 내려받음 — 코스피200 선물 · 일별추이 · 거래대금 · 순매수 · 백만원 · **시장구분 전체**(정규 + 야간)): `futures_krx_import.py 파일들`로 합침(source = krx, 열 orgn · etc_corp · prsn · frgn `_amt`). 2015-01-02 – 2026-10-20, KIS 매일 줄은 source = kis. KRX 야간장은 2025-06부터라 그 전은 전체 = 정규. KIS 매일 값이 "전체"와 같은지는 KRX 다음 날 값과 맞춰 확인할 것.
+
 ## 할 일
-- 없음. (참고: `.streamlit\secrets.toml`은 BOM 없는 UTF-8이어야 한다 — BOM이 있으면 TOMLDecodeError.)
+- (2026-10-21 완료) 선물 과거분 2015-01-02 – 2026-10-20 빠진 거래일 0 → 9.351(실자료 재검증): 147칸 살아남음 0, 외국인 선물 단독 누적도 아님(동행 지표). 약함 근거 "기관 현물 · 선물 20일 동반 순매수 → 이후 60일 좋음"만 기록, 2027-10 재판정. 매일 계산 · 리포트에 넣지 않음. 수집(KIS 매일)은 재판정용으로 계속 쌓는다.
+- KIS 매일 값(16:00 기록)이 KRX "전체"와 같은지 확인(야간장 포함 여부). (참고: `.streamlit\secrets.toml`은 BOM 없는 UTF-8이어야 한다 — BOM이 있으면 TOMLDecodeError.)
