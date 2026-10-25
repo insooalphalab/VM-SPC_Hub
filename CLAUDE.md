@@ -22,7 +22,7 @@ VM-Hub는 주식 판단 도구를 **역할 5개**로 나눈 작업 공간이다.
 
 - 답변은 **한국어 존댓말**. 결론 먼저, 과정은 접기.
 - 사용자가 직접 실행할 명령은 **Windows PowerShell 5.1** 기준(`&&` · `!` 쓰지 않음).
-- **커밋 · 푸시는 사용자가 요청할 때만.** 비밀(.streamlit/secrets.toml · .env · 텔레그램 .session · 보유 종목 목록)은 절대 커밋하지 않는다. VM-Hub는 아직 깃허브에 연결하지 않음(며칠 돌려 본 뒤 사용자가 결정).
+- **커밋 · 푸시는 작업을 마칠 때마다 따로 묻지 않고 한다**(2026-10-25 사용자: "그냥 올리는 걸로" — 수동 단계가 헷갈림). 원격 = https://github.com/insooalphalab/VM-SPC_Hub (master), 작성자 insooalphalab <insoo.alphalab@gmail.com>(이 저장소 설정). 올리기 전 `git diff --cached --name-only`로 비밀 · 데이터가 없는지 확인. 비밀(.streamlit/secrets.toml · .env · 텔레그램 .session · 보유 종목 목록)과 data · results · state · logs · exchange 내용물은 절대 커밋하지 않는다. VM-SPC_Core 등 다른 저장소는 여전히 사용자가 요청할 때만.
 - Markdown에 물결표(`~`)로 범위를 쓰지 않는다(깃허브가 취소선으로 그림) — "–"를 쓴다.
 - 화면 · 리포트 문구는 실제 쓰는 도구 톤. 자동 주문은 없고 판단은 사람이 한다.
 - 판단에 쓰는 규칙은 **검증된 것만**(VM-SPC_Core 등급). 2 – 5 역할은 데이터와 서술 요약만 내고 방향 판단을 하지 않는다. 검증 안 된 자료는 리포트에서 "참고"로만.
